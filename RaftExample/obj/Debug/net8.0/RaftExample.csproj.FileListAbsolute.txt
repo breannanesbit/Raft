@@ -1,0 +1,15 @@
+C:\Users\brebr\distributed\Raft\RaftExample\bin\Debug\net8.0\RaftExample.exe
+C:\Users\brebr\distributed\Raft\RaftExample\bin\Debug\net8.0\RaftExample.deps.json
+C:\Users\brebr\distributed\Raft\RaftExample\bin\Debug\net8.0\RaftExample.runtimeconfig.json
+C:\Users\brebr\distributed\Raft\RaftExample\bin\Debug\net8.0\RaftExample.dll
+C:\Users\brebr\distributed\Raft\RaftExample\bin\Debug\net8.0\RaftExample.pdb
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.AssemblyInfoInputs.cache
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.AssemblyInfo.cs
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.csproj.CoreCompileInputs.cache
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.sourcelink.json
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.dll
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\refint\RaftExample.dll
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.pdb
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\RaftExample.genruntimeconfig.cache
+C:\Users\brebr\distributed\Raft\RaftExample\obj\Debug\net8.0\ref\RaftExample.dll
