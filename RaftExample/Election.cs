@@ -1,5 +1,3 @@
-using System;
-
 namespace RaftElection;
 
 public enum State { Follower, Candidate, Leader }
@@ -69,17 +67,17 @@ public class Election
         //increase the term 
         CurrentTerm++;
         //current node votes for themself
-        int voteCount = 1;
+        int voteCount = 0;
         //record the votes
         lock (lockObject)
         {
             foreach (var nodes in ListOfAllNodes)
             {
-                if (nodes.CurrentTerm <= CurrentTerm)
+                if (nodes != null && nodes.CurrentTerm <= CurrentTerm)
                 {
                     nodes.VoteForTheCurrentTerm(CurrentTerm, NodeId);
                     voteCount++;
-                    if (voteCount >= ListOfAllNodes.Count / 2)
+                    if (voteCount >= ListOfAllNodes.Count() / 2 + 1)
                     {
                         CurrentState = State.Leader;
                         LogToFile($"{NodeId} is the leader for term {CurrentTerm}");
@@ -95,14 +93,17 @@ public class Election
     {
         foreach (var nodes in ListOfAllNodes)
         {
-            if (nodes.NodeId != NodeId)
+            if (nodes != null)
             {
-                lock(lockObject)
+                if (nodes.NodeId != NodeId)
                 {
-                    nodes.CurrentTerm = CurrentTerm;
-                    nodes.CurrentState = State.Follower;
-                    LogToFile($"Got a heartbeat for term {CurrentTerm}");
-                    ResetTimers();
+                    lock (lockObject)
+                    {
+                        nodes.CurrentTerm = CurrentTerm;
+                        nodes.CurrentState = State.Follower;
+                        LogToFile($"Got a heartbeat for term {CurrentTerm}");
+                        ResetTimers();
+                    }
                 }
             }
         }
@@ -110,11 +111,23 @@ public class Election
 
     public void VoteForTheCurrentTerm(int term, Guid CandidateId)
     {
-        lock(lockObject)
+        lock (lockObject)
         {
             Votes[NodeId] = (term, CandidateId);
             LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
         }
     }
 
+    public static void MarkNodesUnhealthy(int count)
+    {
+        for (int i = 1; i <= count; i++)
+        {
+            ListOfAllNodes[i] = null;
+        }
+    }
+
+    public static void ClearListForTestingPurpose()
+    {
+        ListOfAllNodes.Clear();
+    }
 }
