@@ -43,6 +43,18 @@ namespace RathTest
         }
 
         [Test]
+        public void Leader_Not_Elected_If_one_Of_Five_Nodes_Are_Unhealthy()
+        {
+            Election.ClearListForTestingPurpose();
+            var nodes = CreateNodes(5);
+            nodes[0].CurrentState = State.Candidate;
+            Election.MarkNodesUnhealthy(1);
+            nodes[0].StartAnElection();
+
+            Assert.AreEqual(State.Leader, nodes[0].CurrentState);
+        }
+
+        [Test]
         public void Leader_Not_Elected_If_Three_Of_Five_Nodes_Are_Unhealthy()
         {
             Election.ClearListForTestingPurpose();
@@ -75,6 +87,43 @@ namespace RathTest
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
         }
 
+        [Test]
+        public void Node_will_call_for_an_election_if_messages_from_the_leader_takes_too_long()
+        {
+            Election.ClearListForTestingPurpose();
+            var nodes = CreateNodes(5);
+
+            nodes[0].CurrentState = State.Candidate;
+            nodes[0].StartAnElection();
+            //WaitForLeaderElection(nodes);
+            Assert.AreEqual(State.Leader, nodes[0].CurrentState);
+
+            nodes[0].CurrentState = State.Follower;
+            nodes[1].CheckWhatToDoWithTheState();
+            nodes[1].CheckWhatToDoWithTheState();
+
+            Assert.AreEqual(State.Leader, nodes[1].CurrentState);
+        }
+
+        [Test]
+        public void Avoiding_two_double_voting()
+        {
+            Election.ClearListForTestingPurpose();
+            var nodes = CreateNodes(5);
+            nodes[0].CurrentState = State.Candidate;
+            nodes[0].StartAnElection();
+
+            Election.MarkNodesUnhealthy(3);
+            Assert.AreEqual(State.Leader, nodes[0].CurrentState);
+
+            Election.MarkNodesHealthy(3);
+            nodes[4].CurrentTerm = 0;
+            nodes[4].StartAnElection();
+            Assert.AreEqual(State.Leader, nodes[0].CurrentState);
+            Assert.AreEqual(State.Follower, nodes[4].CurrentState);
+
+        }
+
 
         private static Election[] CreateNodes(int count)
         {
@@ -93,16 +142,6 @@ namespace RathTest
             return nodes;
         }
 
-
-
-        private static void WaitForLeaderElection(Election[] nodes)
-        {
-            // Wait for all nodes to finish their elections
-            while (Array.Exists(nodes, node => node.CurrentState != State.Leader))
-            {
-                Thread.Sleep(10);
-            }
-        }
     }
 
 }

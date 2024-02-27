@@ -1,6 +1,6 @@
 namespace RaftElection;
 
-public enum State { Follower, Candidate, Leader }
+public enum State { Follower, Candidate, Leader, Unhealthy }
 
 public class Election
 {
@@ -45,20 +45,25 @@ public class Election
     {
         while (true)
         {
-            LogToFile($"timer: {timer}");
-            Thread.Sleep(timer);
-            switch (CurrentState)
-            {
-                case State.Follower:
-                    CurrentState = State.Candidate;
-                    break;
-                case State.Candidate:
-                    StartAnElection();
-                    break;
-                case State.Leader:
-                    SendOutHeartbeat();
-                    break;
-            }
+            CheckWhatToDoWithTheState();
+        }
+    }
+
+    public void CheckWhatToDoWithTheState()
+    {
+        LogToFile($"timer: {timer}");
+        Thread.Sleep(timer);
+        switch (CurrentState)
+        {
+            case State.Follower:
+                CurrentState = State.Candidate;
+                break;
+            case State.Candidate:
+                StartAnElection();
+                break;
+            case State.Leader:
+                SendOutHeartbeat();
+                break;
         }
     }
 
@@ -73,10 +78,14 @@ public class Election
         {
             foreach (var nodes in ListOfAllNodes)
             {
-                if (nodes != null && nodes.CurrentTerm <= CurrentTerm)
+                if (nodes.CurrentState != State.Unhealthy && nodes.CurrentTerm <= CurrentTerm)
                 {
-                    nodes.VoteForTheCurrentTerm(CurrentTerm, NodeId);
-                    voteCount++;
+                    var Voted = nodes.VoteForTheCurrentTerm(CurrentTerm, NodeId);
+
+                    if (Voted)
+                    {
+                        voteCount++;
+                    }
                     if (voteCount >= ListOfAllNodes.Count() / 2 + 1)
                     {
                         CurrentState = State.Leader;
@@ -109,12 +118,30 @@ public class Election
         }
     }
 
-    public void VoteForTheCurrentTerm(int term, Guid CandidateId)
+    public bool VoteForTheCurrentTerm(int term, Guid CandidateId)
     {
         lock (lockObject)
         {
-            Votes[NodeId] = (term, CandidateId);
-            LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
+            try
+            {
+                var checkVote = Votes[NodeId];
+                if (term > checkVote.Item1)
+                {
+                    Votes[NodeId] = (term, CandidateId);
+                    LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                Votes[NodeId] = (term, CandidateId);
+                LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
+                return true;
+            }
         }
     }
 
@@ -122,12 +149,30 @@ public class Election
     {
         for (int i = 1; i <= count; i++)
         {
-            ListOfAllNodes[i] = null;
+            ListOfAllNodes[i].CurrentState = State.Unhealthy;
+        }
+    }
+
+    public static void MarkNodesHealthy(int count)
+    {
+        for (int i = 1; i <= count; i++)
+        {
+            ListOfAllNodes[i].CurrentState = State.Follower;
         }
     }
 
     public static void ClearListForTestingPurpose()
     {
         ListOfAllNodes.Clear();
+    }
+
+    public static List<Election> GetTheListofnodes()
+    {
+        return ListOfAllNodes;
+    }
+
+    public static Dictionary<Guid, (int, Guid)> GetTheListofVotes()
+    {
+        return Votes;
     }
 }
