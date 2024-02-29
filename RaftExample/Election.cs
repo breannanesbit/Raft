@@ -7,11 +7,14 @@ public class Election
     public Guid NodeId { get; set; }
     public State CurrentState { get; set; }
     public int CurrentTerm { get; set; }
+    public Guid CurrentLeader { get; set; }
+
     public int timer;
     private readonly Random random = new();
     private readonly static List<Election> ListOfAllNodes = [];
     private readonly static Dictionary<Guid, (int, Guid)> Votes = [];
     private readonly object lockObject = new object();
+    private Dictionary<string, (string, string)> logDict = [];
 
 
     public Election()
@@ -143,6 +146,38 @@ public class Election
                 return true;
             }
         }
+    }
+
+    public static Guid EventualGet()
+    {
+        var foundAHealthyNode = ListOfAllNodes.Find(n => n.CurrentState != State.Unhealthy);
+        return foundAHealthyNode.CurrentLeader;
+    }
+
+    public static Election StrongGet()
+    {
+        int leaderInt = 0;
+        var foundLeader = ListOfAllNodes.Find(n => n.CurrentState == State.Leader);
+        foreach (var node in ListOfAllNodes)
+        {
+            if (node.CurrentLeader == foundLeader.NodeId)
+            {
+                leaderInt++;
+            }
+        }
+        if (leaderInt >= (ListOfAllNodes.Count() / 2 + 1))
+        {
+            return foundLeader;
+        }
+        else
+        {
+            throw new Exception("Couldn't find a leader");
+        }
+    }
+
+    public void CompareVersionAndSwap(string value)
+    {
+
     }
 
     public static void MarkNodesUnhealthy(int count)

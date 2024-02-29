@@ -124,6 +124,38 @@ namespace RathTest
 
         }
 
+        [Test]
+        public void TestStrongGet()
+        {
+            Election.ClearListForTestingPurpose();
+            var nodes = CreateNodes(5);
+            nodes[0].CurrentState = State.Leader;
+            nodes[0].CurrentLeader = nodes[0].NodeId;
+            nodes[1].CurrentLeader = nodes[0].NodeId;
+            nodes[2].CurrentLeader = nodes[0].NodeId;
+            nodes[3].CurrentLeader = nodes[0].NodeId;
+            nodes[4].CurrentLeader = nodes[0].NodeId;
+
+            var check = Election.StrongGet();
+
+            Assert.AreEqual(check, nodes[0]);
+        }
+
+
+        [Test]
+        public void TestStrongGetWithOnlyThreenodesHaveTheLeader()
+        {
+            Election.ClearListForTestingPurpose();
+            var nodes = CreateNodes(5);
+            nodes[0].CurrentState = State.Leader;
+            nodes[0].CurrentLeader = nodes[0].NodeId;
+            nodes[1].CurrentLeader = nodes[0].NodeId;
+            nodes[2].CurrentLeader = nodes[0].NodeId;
+
+            var check = Election.StrongGet();
+
+            Assert.AreEqual(check, nodes[0]);
+        }
 
         private static Election[] CreateNodes(int count)
         {
