@@ -15,8 +15,21 @@ foreach (var node in nodes)
     thread.Start();
 }
 
-var currentLeader = Election.StrongGet();
+Thread.Sleep(1000);
 
-Console.WriteLine("Enter a value");
-var response = Console.ReadLine();
+while (true)
+{
+    var currentLeader = Election.StrongGet();
+
+    Console.WriteLine("Enter a value");
+    var response = Console.ReadLine();
+    var parsedResponse = int.Parse(response);
+
+    if (currentLeader != null)
+    {
+        var success = currentLeader.CompareVersionAndSwap("test", parsedResponse);
+        Console.WriteLine(success);
+    }
+
+}
 

@@ -14,7 +14,7 @@ public class Election
     private readonly static List<Election> ListOfAllNodes = [];
     private readonly static Dictionary<Guid, (int, Guid)> Votes = [];
     private readonly object lockObject = new object();
-    private Dictionary<string, (string, string)> logDict = [];
+    private Dictionary<string, (int, int)> logDict = [];
 
 
     public Election()
@@ -65,7 +65,7 @@ public class Election
                 StartAnElection();
                 break;
             case State.Leader:
-                SendOutHeartbeat();
+                SendOutHeartbeat("regular heartbeat", NodeId);
                 break;
         }
     }
@@ -93,16 +93,19 @@ public class Election
                     {
                         CurrentState = State.Leader;
                         LogToFile($"{NodeId} is the leader for term {CurrentTerm}");
-                        SendOutHeartbeat();
+                        SendOutHeartbeat("election ended", NodeId);
                         return;
                     }
+
                 }
+
             }
         }
     }
 
-    public void SendOutHeartbeat()
+    public int SendOutHeartbeat(string value, Guid CurrentLeader)
     {
+        int success = 0;
         foreach (var nodes in ListOfAllNodes)
         {
             if (nodes != null)
@@ -113,12 +116,17 @@ public class Election
                     {
                         nodes.CurrentTerm = CurrentTerm;
                         nodes.CurrentState = State.Follower;
-                        LogToFile($"Got a heartbeat for term {CurrentTerm}");
+                        nodes.LogToFile($"term:{CurrentTerm} command:{value}");
+                        success++;
+
                         ResetTimers();
                     }
                 }
+
+                nodes.CurrentLeader = CurrentLeader;
             }
         }
+        return success;
     }
 
     public bool VoteForTheCurrentTerm(int term, Guid CandidateId)
@@ -158,27 +166,52 @@ public class Election
     {
         int leaderInt = 0;
         var foundLeader = ListOfAllNodes.Find(n => n.CurrentState == State.Leader);
-        foreach (var node in ListOfAllNodes)
+        if (foundLeader != null)
         {
-            if (node.CurrentLeader == foundLeader.NodeId)
+            foreach (var node in ListOfAllNodes)
             {
-                leaderInt++;
+                if (node.CurrentLeader == foundLeader.NodeId)
+                {
+                    leaderInt++;
+                }
             }
-        }
-        if (leaderInt >= (ListOfAllNodes.Count() / 2 + 1))
-        {
-            return foundLeader;
+            if (leaderInt >= (ListOfAllNodes.Count() / 2 + 1))
+            {
+                return foundLeader;
+            }
+            else
+            {
+                throw new Exception("Couldn't find a leader");
+            }
+
         }
         else
         {
             throw new Exception("Couldn't find a leader");
         }
+
     }
 
-    public void CompareVersionAndSwap(string value)
+    public bool CompareVersionAndSwap(string key, int value)
     {
+        if (CurrentState != State.Leader)
+        {
+            return false;
+        }
 
+        LogToFile($"term:{CurrentTerm} command:{value}");
+
+        var nodesResponseCount = SendOutHeartbeat(value.ToString(), NodeId);
+
+        if (nodesResponseCount + 1 >= ListOfAllNodes.Count() / 2 + 1)
+        {
+            logDict[key] = (value, CurrentTerm);
+            return true;
+        }
+        else { return false; }
     }
+
+
 
     public static void MarkNodesUnhealthy(int count)
     {

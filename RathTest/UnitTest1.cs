@@ -85,6 +85,13 @@ namespace RathTest
             // Wait for a while to see if the leader state changes
             Thread.Sleep(500);
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
+
+            Assert.AreEqual(nodes[0].CurrentLeader, nodes[0].NodeId);
+            Assert.AreEqual(nodes[1].CurrentLeader, nodes[0].NodeId);
+            Assert.AreEqual(nodes[2].CurrentLeader, nodes[0].NodeId);
+            Assert.AreEqual(nodes[3].CurrentLeader, nodes[0].NodeId);
+            Assert.AreEqual(nodes[4].CurrentLeader, nodes[0].NodeId);
+
         }
 
         [Test]
@@ -155,6 +162,28 @@ namespace RathTest
             var check = Election.StrongGet();
 
             Assert.AreEqual(check, nodes[0]);
+        }
+
+        [Test]
+        public void TestPiecesOfGateway()
+        {
+            Election.ClearListForTestingPurpose();
+            var nodes = CreateNodes(5);
+            nodes[0].CurrentState = State.Leader;
+            nodes[0].CurrentLeader = nodes[0].NodeId;
+            nodes[1].CurrentLeader = nodes[0].NodeId;
+            nodes[2].CurrentLeader = nodes[0].NodeId;
+
+            var currentLeader = Election.StrongGet();
+
+            bool success = false;
+
+            if (currentLeader != null)
+            {
+                success = currentLeader.CompareVersionAndSwap("test", 1);
+            }
+
+            Assert.IsTrue(success);
         }
 
         private static Election[] CreateNodes(int count)
