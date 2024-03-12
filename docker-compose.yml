@@ -2,7 +2,6 @@ version: '3.4'
 
 services:
   raftapi:
-    image: raftapi1
     build:
       context: .
       dockerfile: RaftAPI/Dockerfile
@@ -12,8 +11,6 @@ services:
       - NODE=raftapi1
 
   raftapi2:
-    image: raftapi2
-    container_name: raftapi2
     build:
       context: .
       dockerfile: RaftAPI/Dockerfile
@@ -23,8 +20,6 @@ services:
       - NODE=raftapi2
 
   raftapi3:
-    image: raftapi3
-    container_name: raftapi3
     build:
       context: .
       dockerfile: RaftAPI/Dockerfile
