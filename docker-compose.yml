@@ -3,6 +3,7 @@ version: '3.4'
 services:
   raftapi:
     image: raftapi1
+    container_name: raftapi1
     build:
       context: .
       dockerfile: RaftAPI/Dockerfile
@@ -13,6 +14,7 @@ services:
 
   raftapi2:
     image: raftapi2
+    container_name: raftapi2
     build:
       context: .
       dockerfile: RaftAPI/Dockerfile
@@ -23,6 +25,7 @@ services:
 
   raftapi3:
     image: raftapi3
+    container_name: raftapi3
     build:
       context: .
       dockerfile: RaftAPI/Dockerfile
@@ -34,6 +37,7 @@ services:
 
   gatewayapi:
     image: gatewayapi
+    container_name: gatewayapi
     build:
       context: .
       dockerfile: GatewayApi/Dockerfile
@@ -44,12 +48,14 @@ services:
 
   loki:
     image: grafana/loki:2.3.0
+    container_name: loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
 
   grafana:
     image: grafana/grafana:7.5.10
+    container_name: grafana
     ports:
       - "3000:3000"
     depends_on:
@@ -64,6 +70,7 @@ services:
 
   otel-collector:
     image: otel/opentelemetry-collector:latest
+    container_name: otel-collector
     volumes:
       - ./otel-config.yaml:/etc/otel-collector/otel-config.yaml
     ports:
