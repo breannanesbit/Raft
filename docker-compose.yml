@@ -30,8 +30,6 @@ services:
 
 
   gatewayapi:
-    image: gatewayapi
-    container_name: gatewayapi
     build:
       context: .
       dockerfile: GatewayApi/Dockerfile
