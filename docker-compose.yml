@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  raftapi:
+    image: ${DOCKER_REGISTRY-}raftapi
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
