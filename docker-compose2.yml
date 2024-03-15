@@ -13,7 +13,7 @@ services:
   raftapi2:
     build:
       context: .
-      dockerfile: ../RaftAPI/Dockerfile
+      dockerfile: RaftAPI/Dockerfile
     ports:
       - "2003:8080"
     environment:
@@ -23,7 +23,7 @@ services:
   gatewayapi:
     build:
       context: .
-      dockerfile: ../GatewayApi/Dockerfile
+      dockerfile: GatewayApi/Dockerfile
     ports:
       - "2010:8080"
     environment:
