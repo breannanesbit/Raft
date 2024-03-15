@@ -54,7 +54,6 @@ jobs:
 
       - name: redeploy application
         run: |
-            cd ops2
             docker compose -f docker-compose.yml pull
             docker compose -f docker-compose.yml build --no-cache 
             docker compose -f docker-compose.yml down
