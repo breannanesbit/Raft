@@ -1,8 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "rsf4EBluiQUBkOjBrlRaVbfihPSkGaB7bhZRl52LSCqcwRyIVPQsTpzTU2KEOCVH74yOsfqqBwPbNQXfrJoB8A==",
+  "dgSpecHash": "J5Ju+hUFBURdsaU8avFxkFXDwi7jTKx/NKyshKMuT57MRj+u3y0566D/ClqpSXWMRjha5ZTjXZRZrznuq83LWw==",
   "success": true,
   "projectFilePath": "C:\\Users\\brebr\\distributed\\Raft\\RaftExample\\RaftExample.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\brebr\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.0-preview.2.24128.5\\microsoft.extensions.dependencyinjection.9.0.0-preview.2.24128.5.nupkg.sha512",
+    "C:\\Users\\brebr\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.0-preview.2.24128.5\\microsoft.extensions.dependencyinjection.abstractions.9.0.0-preview.2.24128.5.nupkg.sha512",
+    "C:\\Users\\brebr\\.nuget\\packages\\microsoft.extensions.logging\\9.0.0-preview.2.24128.5\\microsoft.extensions.logging.9.0.0-preview.2.24128.5.nupkg.sha512",
+    "C:\\Users\\brebr\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.0-preview.2.24128.5\\microsoft.extensions.logging.abstractions.9.0.0-preview.2.24128.5.nupkg.sha512",
+    "C:\\Users\\brebr\\.nuget\\packages\\microsoft.extensions.options\\9.0.0-preview.2.24128.5\\microsoft.extensions.options.9.0.0-preview.2.24128.5.nupkg.sha512",
+    "C:\\Users\\brebr\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.0-preview.2.24128.5\\microsoft.extensions.primitives.9.0.0-preview.2.24128.5.nupkg.sha512"
+  ],
   "logs": []
 }

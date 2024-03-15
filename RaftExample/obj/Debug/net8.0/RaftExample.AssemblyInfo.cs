@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RaftExample")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fe83bd67ae40bda4954dbbed3ecdf5783fd7c15b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+883283995095dfb5f885cf1fcc24fbeb7047ea2e")]
 [assembly: System.Reflection.AssemblyProductAttribute("RaftExample")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RaftExample")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

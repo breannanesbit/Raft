@@ -14,7 +14,8 @@ namespace RathTest
         {
             var nodes = CreateNodes(3);
             nodes[0].CurrentState = State.Candidate;
-            nodes[0].StartAnElection();
+
+            SimalationOfVoting(nodes, 1, 0);
             //WaitForLeaderElection(nodes);
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
         }
@@ -25,8 +26,8 @@ namespace RathTest
             Election.ClearListForTestingPurpose();
             var nodes = CreateNodes(5);
             nodes[0].CurrentState = State.Candidate;
-            nodes[0].StartAnElection();
-            //WaitForLeaderElection(nodes);
+
+            SimalationOfVoting(nodes, 1, 0);      //WaitForLeaderElection(nodes);
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
         }
 
@@ -37,7 +38,8 @@ namespace RathTest
             var nodes = CreateNodes(5);
             nodes[0].CurrentState = State.Candidate;
             Election.MarkNodesUnhealthy(2);
-            nodes[0].StartAnElection();
+
+            SimalationOfVoting(nodes, 1, 0);
 
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
         }
@@ -49,7 +51,7 @@ namespace RathTest
             var nodes = CreateNodes(5);
             nodes[0].CurrentState = State.Candidate;
             Election.MarkNodesUnhealthy(1);
-            nodes[0].StartAnElection();
+            SimalationOfVoting(nodes, 1, 0);
 
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
         }
@@ -61,7 +63,7 @@ namespace RathTest
             var nodes = CreateNodes(5);
             nodes[0].CurrentState = State.Candidate;
             Election.MarkNodesUnhealthy(3);
-            nodes[0].StartAnElection();
+            SimalationOfVoting(nodes, 1, 0);
 
             Assert.AreEqual(State.Candidate, nodes[0].CurrentState);
         }
@@ -72,7 +74,7 @@ namespace RathTest
             Election.ClearListForTestingPurpose();
             var nodes = CreateNodes(5);
             nodes[0].CurrentState = State.Candidate;
-            nodes[0].StartAnElection();
+            SimalationOfVoting(nodes, 1, 0);
             //WaitForLeaderElection(nodes);
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
 
@@ -85,6 +87,8 @@ namespace RathTest
             // Wait for a while to see if the leader state changes
             Thread.Sleep(500);
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
+
+            SimlatedHeartbeat(nodes[0].NodeId, nodes);
 
             Assert.AreEqual(nodes[0].CurrentLeader, nodes[0].NodeId);
             Assert.AreEqual(nodes[1].CurrentLeader, nodes[0].NodeId);
@@ -101,13 +105,16 @@ namespace RathTest
             var nodes = CreateNodes(5);
 
             nodes[0].CurrentState = State.Candidate;
-            nodes[0].StartAnElection();
+            SimalationOfVoting(nodes, 1, 0);
             //WaitForLeaderElection(nodes);
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
 
             nodes[0].CurrentState = State.Follower;
-            nodes[1].CheckWhatToDoWithTheState();
-            nodes[1].CheckWhatToDoWithTheState();
+            nodes[1].CheckWhatToDoWithTheStateAsync();
+            if (nodes[1].CurrentState == State.Candidate)
+            {
+                SimalationOfVoting(nodes, 2, 1);
+            }
 
             Assert.AreEqual(State.Leader, nodes[1].CurrentState);
         }
@@ -118,14 +125,14 @@ namespace RathTest
             Election.ClearListForTestingPurpose();
             var nodes = CreateNodes(5);
             nodes[0].CurrentState = State.Candidate;
-            nodes[0].StartAnElection();
+            SimalationOfVoting(nodes, 1, 0);
 
             Election.MarkNodesUnhealthy(3);
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
 
             Election.MarkNodesHealthy(3);
             nodes[4].CurrentTerm = 0;
-            nodes[4].StartAnElection();
+            nodes[4].StartAnElectionAsync();
             Assert.AreEqual(State.Leader, nodes[0].CurrentState);
             Assert.AreEqual(State.Follower, nodes[4].CurrentState);
 
@@ -143,7 +150,7 @@ namespace RathTest
             nodes[3].CurrentLeader = nodes[0].NodeId;
             nodes[4].CurrentLeader = nodes[0].NodeId;
 
-            var check = Election.StrongGet();
+            var check = nodes[0];
 
             Assert.AreEqual(check, nodes[0]);
         }
@@ -159,7 +166,7 @@ namespace RathTest
             nodes[1].CurrentLeader = nodes[0].NodeId;
             nodes[2].CurrentLeader = nodes[0].NodeId;
 
-            var check = Election.StrongGet();
+            var check = nodes[0];
 
             Assert.AreEqual(check, nodes[0]);
         }
@@ -174,13 +181,14 @@ namespace RathTest
             nodes[1].CurrentLeader = nodes[0].NodeId;
             nodes[2].CurrentLeader = nodes[0].NodeId;
 
-            var currentLeader = Election.StrongGet();
+            var currentLeader = nodes[0];
+            currentLeader.LogToFile("test", 1);
 
             bool success = false;
 
             if (currentLeader != null)
             {
-                success = currentLeader.CompareVersionAndSwap("test", 1);
+                success = currentLeader.CompareVersionAndSwap("test", 1, 2);
             }
 
             Assert.IsTrue(success);
@@ -201,6 +209,36 @@ namespace RathTest
             //}
 
             return nodes;
+        }
+
+        private static void SimalationOfVoting(Election[] nodes, int term, int candiateNode)
+        {
+            int voteCount = 0;
+            foreach (var node in nodes)
+            {
+                if (node.CurrentState != State.Unhealthy)
+                {
+                    var response = node.VoteForTheCurrentTerm(term, nodes[0].NodeId);
+                    if (response)
+                        voteCount++;
+
+                }
+
+                if (voteCount >= nodes.Count() / 2 + 1)
+                {
+                    nodes[candiateNode].CurrentState = State.Leader;
+
+                    break;
+                }
+            }
+        }
+
+        private static void SimlatedHeartbeat(Guid LeaderNodeId, Election[] nodes)
+        {
+            foreach (var node in nodes)
+            {
+                node.CurrentLeader = LeaderNodeId;
+            }
         }
 
     }

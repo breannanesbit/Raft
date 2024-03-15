@@ -1,0 +1,55 @@
+version: '3.4'
+
+services:
+
+  raftapi3:
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
+    ports:
+      - "2004:8080"
+    environment:
+      - NODES="http://100.112.33.3:2002,http://100.112.33.3:2003"
+
+
+#   gatewayapi:
+#     build:
+#       context: .
+#       dockerfile: GatewayApi/Dockerfile
+#     ports:
+#       - "2010:8080"
+#     environment:
+#       - NODES="raftapi1,raftapi2,raftapi3"
+
+#   loki:
+#     image: grafana/loki:latest
+#     container_name: loki
+#     ports:
+#       - "3100:3100"
+
+#   grafana:
+#     image: grafana/grafana:latest
+#     container_name: grafana
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - loki
+#     environment:
+#       - GF_SECURITY_ADMIN_USER=admin
+#       - GF_SECURITY_ADMIN_PASSWORD=admin
+#     volumes:
+#       - grafana_data:/var/lib/grafana
+#       - ./grafana_datasource.yml:/etc/grafana/provisioning/datasources/grafana-datasource.yml
+
+
+#   otel-collector:
+#     image: otel/opentelemetry-collector:latest
+#     container_name: otel-collector
+#     volumes:
+#       - ./otel-config.yaml:/etc/otel-collector/otel-config.yaml
+#     ports:
+#       - "4310:4317"
+#       - "55680:55680"
+
+# volumes:
+#   grafana_data:

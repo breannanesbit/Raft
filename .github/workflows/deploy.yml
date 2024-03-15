@@ -4,8 +4,22 @@ run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 #   DUCKDNSTOKEN: ${{ secrets.DUCKDNSTOKEN }}
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
-    runs-on: self-hosted
+  Test:
+    runs-on: office2
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '8.0'
+      - name: Run tests
+        run: dotnet test RathTest
+
+
+  deploy_to_server_4:
+    runs-on: office4
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -18,6 +32,7 @@ jobs:
 
       - name: redeploy application
         run: |
+            cd ops
             docker compose pull
             docker compose build --no-cache 
             docker compose down
@@ -32,3 +47,23 @@ jobs:
         run: |
             cd RathTest
             dotnet test
+
+  deploy_to_server_2:
+    runs-on: office2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 8.0.x
+          include-prerelease: true
+
+
+      - name: redeploy application
+        run: |
+            cd ops2
+            docker compose pull
+            docker compose build --no-cache 
+            docker compose down
+            docker compose up -d

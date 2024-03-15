@@ -1,13 +1,19 @@
+using System.Net.Http.Json;
+
 namespace RaftElection;
 
 public enum State { Follower, Candidate, Leader, Unhealthy }
 
 public class Election
 {
+    private readonly HttpClient httpClient;
+
     public Guid NodeId { get; set; }
     public State CurrentState { get; set; }
     public int CurrentTerm { get; set; }
+    public int LogIndex { get; set; }
     public Guid CurrentLeader { get; set; }
+    public List<string> Urls { get; set; }
 
     public int timer;
     private readonly Random random = new();
@@ -16,28 +22,55 @@ public class Election
     private readonly object lockObject = new object();
     private Dictionary<string, (int, int)> logDict = [];
 
-
-    public Election()
+    public Election(List<string> urls)
     {
+        this.httpClient = new HttpClient();
+
         //set id
         NodeId = Guid.NewGuid();
         //everyone starts as a follower
         CurrentState = State.Follower;
         //starting term 0
         CurrentTerm = 0;
+        LogIndex = 0;
+        //add the current node to the static list
+        ListOfAllNodes.Add(this);
+        //set timers
+        ResetTimers();
+        Urls = urls;
+    }
+
+    public Election()
+    {
+        this.httpClient = new HttpClient();
+
+        //set id
+        NodeId = Guid.NewGuid();
+        //everyone starts as a follower
+        CurrentState = State.Follower;
+        //starting term 0
+        CurrentTerm = 0;
+        LogIndex = 0;
         //add the current node to the static list
         ListOfAllNodes.Add(this);
         //set timers
         ResetTimers();
     }
 
-    public void LogToFile(string message)
+    public bool LogToFile(string key, int value)
     {
-        lock (lockObject)
+        //lock (lockObject)
+        //{
+        //    string fileName = $"{NodeId}.log";
+        //    System.IO.File.AppendAllText(fileName, $"{DateTime.Now}: {message}\n");
+        //}
+        try
         {
-            string fileName = $"{NodeId}.log";
-            System.IO.File.AppendAllText(fileName, $"{DateTime.Now}: {message}\n");
+            LogIndex = LogIndex + 1;
+            logDict[key] = (value, LogIndex);
+            return true;
         }
+        catch { return false; }
     }
 
     public void ResetTimers()
@@ -48,13 +81,12 @@ public class Election
     {
         while (true)
         {
-            CheckWhatToDoWithTheState();
+            CheckWhatToDoWithTheStateAsync();
         }
     }
 
-    public void CheckWhatToDoWithTheState()
+    public async Task CheckWhatToDoWithTheStateAsync()
     {
-        LogToFile($"timer: {timer}");
         Thread.Sleep(timer);
         switch (CurrentState)
         {
@@ -62,68 +94,68 @@ public class Election
                 CurrentState = State.Candidate;
                 break;
             case State.Candidate:
-                StartAnElection();
+                StartAnElectionAsync();
                 break;
             case State.Leader:
-                SendOutHeartbeat("regular heartbeat", NodeId);
+                await SendOutHeartbeatAsync("regular heartbeat", 0, NodeId);
                 break;
         }
     }
 
-    public void StartAnElection()
+    public async Task StartAnElectionAsync()
     {
         //increase the term 
         CurrentTerm++;
         //current node votes for themself
         int voteCount = 0;
         //record the votes
-        lock (lockObject)
+
+        foreach (var nodes in Urls)
         {
-            foreach (var nodes in ListOfAllNodes)
+            var Voted = await httpClient.GetFromJsonAsync<bool>($"{nodes}/getVotes/{NodeId}");
+
+
+
+            if (Voted)
             {
-                if (nodes.CurrentState != State.Unhealthy && nodes.CurrentTerm <= CurrentTerm)
-                {
-                    var Voted = nodes.VoteForTheCurrentTerm(CurrentTerm, NodeId);
-
-                    if (Voted)
-                    {
-                        voteCount++;
-                    }
-                    if (voteCount >= ListOfAllNodes.Count() / 2 + 1)
-                    {
-                        CurrentState = State.Leader;
-                        LogToFile($"{NodeId} is the leader for term {CurrentTerm}");
-                        SendOutHeartbeat("election ended", NodeId);
-                        return;
-                    }
-
-                }
-
+                voteCount++;
             }
+            if (voteCount >= Urls.Count() / 2 + 1)
+            {
+                CurrentState = State.Leader;
+                //LogToFile($"{NodeId} is the leader for term {CurrentTerm}");
+                await SendOutHeartbeatAsync("election ended", 0, NodeId);
+                return;
+            }
+
         }
     }
 
-    public int SendOutHeartbeat(string value, Guid CurrentLeader)
+    public async Task<int> SendOutHeartbeatAsync(string key, int value, Guid CurrentLeader)
     {
         int success = 0;
-        foreach (var nodes in ListOfAllNodes)
+        foreach (var nodes in Urls)
         {
             if (nodes != null)
             {
-                if (nodes.NodeId != NodeId)
+                var beat = new HeartbeatInfo()
                 {
-                    lock (lockObject)
-                    {
-                        nodes.CurrentTerm = CurrentTerm;
-                        nodes.CurrentState = State.Follower;
-                        nodes.LogToFile($"term:{CurrentTerm} command:{value}");
-                        success++;
+                    CurrentTerm = CurrentTerm,
+                    LeaderId = CurrentLeader,
+                    Value = value,
+                    key = key,
+                };
 
-                        ResetTimers();
-                    }
+                var response = await httpClient.GetFromJsonAsync<bool>($"{nodes}/heartbeat/from/{beat}");
+
+                if (response)
+                {
+                    success++;
                 }
 
-                nodes.CurrentLeader = CurrentLeader;
+                ResetTimers();
+
+
             }
         }
         return success;
@@ -139,7 +171,7 @@ public class Election
                 if (term > checkVote.Item1)
                 {
                     Votes[NodeId] = (term, CandidateId);
-                    LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
+                    //LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
                     return true;
                 }
                 else
@@ -150,62 +182,89 @@ public class Election
             catch (Exception e)
             {
                 Votes[NodeId] = (term, CandidateId);
-                LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
+                //LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
                 return true;
             }
         }
     }
 
-    public static Guid EventualGet()
+    public (int?, int?) EventualGet(string key)
     {
-        var foundAHealthyNode = ListOfAllNodes.Find(n => n.CurrentState != State.Unhealthy);
-        return foundAHealthyNode.CurrentLeader;
+        if (logDict.TryGetValue(key, out var value))
+        {
+            return value;
+        }
+        return (null, null);
     }
 
-    public static Election StrongGet()
+    public async Task<(int?, int?)> StrongGetAsync(string key)
     {
         int leaderInt = 0;
-        var foundLeader = ListOfAllNodes.Find(n => n.CurrentState == State.Leader);
-        if (foundLeader != null)
+        foreach (var node in Urls)
         {
-            foreach (var node in ListOfAllNodes)
+            var SameLeader = await httpClient.GetFromJsonAsync<bool>($"{node}/compareleader/{NodeId}");
+            if (SameLeader)
             {
-                if (node.CurrentLeader == foundLeader.NodeId)
-                {
-                    leaderInt++;
-                }
+                leaderInt++;
             }
-            if (leaderInt >= (ListOfAllNodes.Count() / 2 + 1))
+        }
+        if (leaderInt >= (Urls.Count() / 2 + 1))
+        {
+            if (logDict.TryGetValue(key, out var value))
             {
-                return foundLeader;
+                return value;
             }
             else
-            {
-                throw new Exception("Couldn't find a leader");
-            }
-
+                return (null, null);
         }
         else
         {
-            throw new Exception("Couldn't find a leader");
+            return (null, null);
         }
 
     }
 
-    public bool CompareVersionAndSwap(string key, int value)
+    public bool CompareVersionAndSwap(string key, int expectedIndex, int newValue)
+    {
+        if (logDict.TryGetValue(key, out var value) && value.Item2 <= expectedIndex)
+        {
+            logDict[key] = (newValue, expectedIndex);
+            return true;
+        }
+        else { return false; }
+
+        //if (CurrentState != State.Leader)
+        //{
+        //    return false;
+        //}
+
+        //LogToFile($"term:{CurrentTerm} command:{value}");
+
+        //var nodesResponseCount = SendOutHeartbeat(value.ToString(), NodeId);
+
+        //if (nodesResponseCount + 1 >= ListOfAllNodes.Count() / 2 + 1)
+        //{
+        //    logDict[key] = (value, CurrentTerm);
+        //    return true;
+        //}
+        //else { return false; }
+    }
+
+    public async Task<bool> WriteAsync(string key, int value)
     {
         if (CurrentState != State.Leader)
         {
             return false;
         }
 
-        LogToFile($"term:{CurrentTerm} command:{value}");
+        //LogToFile($"term:{CurrentTerm} command:{value}");
 
-        var nodesResponseCount = SendOutHeartbeat(value.ToString(), NodeId);
+        var nodesResponseCount = await SendOutHeartbeatAsync(key, value, NodeId);
 
-        if (nodesResponseCount + 1 >= ListOfAllNodes.Count() / 2 + 1)
+        if (nodesResponseCount + 1 >= Urls.Count() / 2 + 1)
         {
-            logDict[key] = (value, CurrentTerm);
+            LogIndex = LogIndex + 1;
+            logDict[key] = (value, LogIndex);
             return true;
         }
         else { return false; }
@@ -243,4 +302,30 @@ public class Election
     {
         return Votes;
     }
+
+    public void SetUrlsForTests()
+    {
+        Urls = new List<string>();
+        foreach (var n in ListOfAllNodes)
+        {
+            Urls.Add(n.NodeId.ToString());
+        }
+    }
+
+
+}
+
+public class HeartbeatInfo
+{
+    public Guid LeaderId { get; set; }
+    public int Value { get; set; }
+    public string key { get; set; }
+    public int CurrentTerm { get; set; }
+}
+
+public class SwapInfo
+{
+    public string Key { get; set; }
+    public int ExpectedIndex { get; set; }
+    public int NewValue { get; set; }
 }

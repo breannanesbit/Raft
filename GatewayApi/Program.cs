@@ -1,5 +1,6 @@
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
+using RaftElection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +11,24 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+var nodes = Environment.GetEnvironmentVariable("NODES")?.Split(',')?.ToList() ?? [];
+
+
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var logger = serviceProvider.GetRequiredService<ILogger<Gateway>>();
+    return new Gateway(nodes, logger);
+
+});
+
 var serviceName = "Gateway";
 
 builder.Logging.AddOpenTelemetry(options =>
 {
     options.AddOtlpExporter(options =>
     {
-        options.Endpoint = new Uri("http://raft-otel-collector:4317");
+        options.Endpoint = new Uri("http://raft-otel-collector:4310");
     }).SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName));
 });
 
