@@ -4,7 +4,7 @@ services:
   raftapi:
     build:
       context: .
-      dockerfile: ../RaftAPI/Dockerfile
+      dockerfile: RaftAPI/Dockerfile
     ports:
       - "2002:8080"
     environment:

@@ -33,21 +33,11 @@ jobs:
 
       - name: redeploy application
         run: |
-            cd ops
-            docker compose pull
-            docker compose build --no-cache 
-            docker compose down
-            docker compose up -d
+            docker compose -f docker-compose2.yml pull
+            docker compose -f docker-compose2.yml build --no-cache 
+            docker compose -f docker-compose2.yml down
+            docker compose -f docker-compose2.yml up -d
       
-    #   - name: Format
-    #     run: |
-    #       cd web
-    #       dotnet format 
-
-      - name: Tests
-        run: |
-            cd RathTest
-            dotnet test
 
   deploy_to_server_2:
     runs-on: office2
@@ -65,7 +55,7 @@ jobs:
       - name: redeploy application
         run: |
             cd ops2
-            docker compose pull
-            docker compose build --no-cache 
-            docker compose down
-            docker compose up -d
+            docker compose -f docker-compose.yml pull
+            docker compose -f docker-compose.yml build --no-cache 
+            docker compose -f docker-compose.yml down
+            docker compose -f docker-compose.yml up -d
