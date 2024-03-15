@@ -28,7 +28,7 @@ builder.Logging.AddOpenTelemetry(options =>
 {
     options.AddOtlpExporter(options =>
     {
-        options.Endpoint = new Uri("http://raft-otel-collector:4310");
+        options.Endpoint = new Uri("http://raft-otel-collector:4300");
     }).SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName));
 });
 

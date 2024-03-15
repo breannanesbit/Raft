@@ -56,7 +56,7 @@ services:
     volumes:
       - ./otel-config.yaml:/etc/otel-collector/otel-config.yaml
     ports:
-      - "4310:4317"
+      - "4300:4317"
       - "55680:55680"
 
 volumes:
