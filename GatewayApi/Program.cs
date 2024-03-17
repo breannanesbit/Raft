@@ -14,6 +14,13 @@ builder.Services.AddSwaggerGen();
 
 var nodes = Environment.GetEnvironmentVariable("NODES")?.Split(',')?.ToList() ?? [];
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
+});
 
 builder.Services.AddSingleton(serviceProvider =>
 {
@@ -35,13 +42,13 @@ builder.Logging.AddOpenTelemetry(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
-app.UseAuthorization();
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseHttpsRedirection();
+
+
 
 app.MapControllers();
 

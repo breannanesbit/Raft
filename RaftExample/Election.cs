@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 
 namespace RaftElection;
@@ -20,9 +21,10 @@ public class Election
     private readonly static List<Election> ListOfAllNodes = [];
     private readonly static Dictionary<Guid, (int, Guid)> Votes = [];
     private readonly object lockObject = new object();
+    private readonly ILogger<Election> logger;
     private Dictionary<string, (int, int)> logDict = [];
 
-    public Election(List<string> urls)
+    public Election(List<string> urls, ILogger<Election> logger)
     {
         this.httpClient = new HttpClient();
 
@@ -38,6 +40,7 @@ public class Election
         //set timers
         ResetTimers();
         Urls = urls;
+        this.logger = logger;
     }
 
     public Election()
@@ -68,6 +71,7 @@ public class Election
         {
             LogIndex = LogIndex + 1;
             logDict[key] = (value, LogIndex);
+            logger.LogInformation($"{DateTime.Now}: value:{value}, logIndex: {LogIndex}");
             return true;
         }
         catch { return false; }
@@ -114,8 +118,6 @@ public class Election
         {
             var Voted = await httpClient.GetFromJsonAsync<bool>($"{nodes}/getVotes/{NodeId}");
 
-
-
             if (Voted)
             {
                 voteCount++;
@@ -123,6 +125,7 @@ public class Election
             if (voteCount >= Urls.Count() / 2 + 1)
             {
                 CurrentState = State.Leader;
+                logger.LogInformation($"{NodeId} is the leader for term {CurrentTerm}");
                 //LogToFile($"{NodeId} is the leader for term {CurrentTerm}");
                 await SendOutHeartbeatAsync("election ended", 0, NodeId);
                 return;
@@ -171,6 +174,7 @@ public class Election
                 if (term > checkVote.Item1)
                 {
                     Votes[NodeId] = (term, CandidateId);
+                    logger.LogInformation($"{NodeId} voted for {CandidateId} on term {term}");
                     //LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
                     return true;
                 }
@@ -182,6 +186,7 @@ public class Election
             catch (Exception e)
             {
                 Votes[NodeId] = (term, CandidateId);
+                logger.LogInformation($"{NodeId} voted for {CandidateId} on term {term}");
                 //LogToFile($"{NodeId} voted for {CandidateId} on term {term}");
                 return true;
             }
@@ -258,6 +263,7 @@ public class Election
         }
 
         //LogToFile($"term:{CurrentTerm} command:{value}");
+        logger.LogInformation($"term:{CurrentTerm} command:{value}");
 
         var nodesResponseCount = await SendOutHeartbeatAsync(key, value, NodeId);
 
