@@ -11,7 +11,7 @@ services:
   raftweb:
     build:
       context: .
-      dockerfile: RaftWeb/Dockerfile
+      dockerfile: RaftWeb1/Dockerfile
     ports:
       - "2000:80"
 
