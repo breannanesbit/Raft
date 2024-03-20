@@ -335,3 +335,18 @@ public class SwapInfo
     public int ExpectedIndex { get; set; }
     public int NewValue { get; set; }
 }
+
+public class KeyValue
+{
+    public string key { get; set; }
+    public int value { get; set; }
+}
+
+public class Product
+{
+    public string ProductItem { get; set; }
+    public int Quanity { get; set; }
+    public double Cost { get; set; }
+}
+
+

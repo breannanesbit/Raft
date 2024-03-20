@@ -47,9 +47,9 @@ namespace RaftAPI
         }
 
         [HttpPost("write")]
-        public async Task<bool> WriteAsync(string key, int value)
+        public async Task<bool> WriteAsync(KeyValue pair)
         {
-            var response = await _nodeService.WriteAsync(key, value);
+            var response = await _nodeService.WriteAsync(pair.key, pair.value);
             return response;
         }
 

@@ -1,6 +1,16 @@
 version: '3.4'
 
 services:
+  
+
+
+  raftweb:
+    build:
+      context: .
+      dockerfile: RaftWeb1/Dockerfile
+    ports:
+      - "2000:80"
+
   raftapi:
     build:
       context: .

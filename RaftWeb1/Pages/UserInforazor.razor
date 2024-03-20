@@ -1,0 +1,59 @@
+﻿@page "/user"
+@using System.Collections.Generic
+@inject GatewayService service;
+
+<h3>User Management</h3>
+
+<div>
+    <label class="form-label">Enter Username</label>
+    <input class="form-control" @bind="userName" placeholder="Enter user name" />
+    <button class="btn btn-primary" @onclick="AddUser">Add User</button>
+    <button class="btn btn-primary" @onclick="SubmitUser">Submit</button>
+
+    @if(balance != null)
+    {
+        <h5>Your balance is: @balance</h5>
+
+        <label class="form-label">Enter Amount</label>
+        <input class="form-control" @bind="ChangeBalanceByThisAmount" placeholder="Enter an amount to Withdrawl or Deposit" />
+        <button class="btn btn-primary" @onclick="MakeAWithdrawl">Withdrawl</button>
+        <button class="btn btn-primary" @onclick="MakeADeposit">Deposit</button>
+    }
+</div>
+
+
+@code {
+    private string userName;
+    private int? balance;
+    private int? ChangeBalanceByThisAmount;
+
+    private void AddUser()
+    {
+        service.NewValue(userName,0);
+    }
+
+    private async Task SubmitUser()
+    {
+        balance = await service.GetInfor($"balance-of-{userName}");
+    }
+
+    private async Task MakeAWithdrawl()
+    {
+        if(ChangeBalanceByThisAmount != null)
+        {
+            var amount = -ChangeBalanceByThisAmount.Value;
+            await service.NewValue(userName, amount);
+
+        }
+    }
+
+    private async Task MakeADeposit()
+    {
+        if (ChangeBalanceByThisAmount != null)
+        {
+            await service.NewValue(userName, ChangeBalanceByThisAmount.Value);
+
+        }
+    }
+}
+

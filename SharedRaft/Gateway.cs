@@ -29,13 +29,19 @@ namespace RaftElection
 
         }
 
-        public async Task WriteAsync(int value)
+        public async Task WriteAsync(string key, int value)
         {
             //make sure we have current leader
             await GetLeaderAsync();
 
+            var pair = new KeyValue
+            {
+                key = key,
+                value = value
+            };
+
             //send the value
-            var response = httpClient.PostAsJsonAsync($"{leadersUrl}/write", value);
+            var response = httpClient.PostAsJsonAsync($"{leadersUrl}/write", pair);
         }
 
         public async Task<(int?, int?)> EventualGetAsync(string value)

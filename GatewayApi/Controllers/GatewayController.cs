@@ -38,4 +38,16 @@ public class GatewayController : ControllerBase
         else
         { return StatusCode(500, response.ToString()); }
     }
+
+    [HttpPost("newValue")]
+    public async Task AddNewValue(KeyValue pair)
+    {
+        await _gateway.WriteAsync(pair.key, pair.value);
+    }
+
+    //[HttpGet("userBalance")]
+    //public async Task UserBalance(string username)
+    //{
+    //    await _gateway.
+    //}
 }

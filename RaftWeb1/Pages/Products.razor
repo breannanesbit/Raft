@@ -1,0 +1,83 @@
+﻿@page "/products"
+@using RaftElection
+@inject GatewayService service
+
+<h3>Products</h3>
+
+<div class="row">
+    @foreach (var product in products)
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@product.ProductItem</h5>
+                    <p class="card-text">Cost: $@product.Cost</p>
+                    <p class="card-text">Quantity: @product.Quanity</p>
+                    <button class="btn btn-sm btn-primary mr-2" @onclick="() => IncrementQuantity(product)">+</button>
+                    <button class="btn btn-sm btn-primary" @onclick="() => DecrementQuantity(product)">-</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mt-4">
+    <label class="form-label">Enter New Product</label>
+    <input class="form-control mb-2" @bind="newProduct" placeholder="Product" />
+    <label class="form-label">Enter the cost</label>
+    <input class="form-control mb-2" @bind="newProductCost" placeholder="Cost" />
+    <button class="btn btn-primary" @onclick="Add">Add</button>
+</div>
+
+@code {
+    private string newProduct = "";
+    private double newProductCost;
+    private List<Product> products = new List<Product>
+    {
+        new Product { ProductItem = "Candy Bar", Cost = 1.00D },
+        new Product { ProductItem = "Football", Cost = 5.00D },
+        new Product { ProductItem = "Water Bottle", Cost = 2.00D },
+        new Product { ProductItem = "Pens", Cost = 1.50D },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var product in products)
+        {
+            product.Quanity = await service.GetInfor($"stock-of-{product.ProductItem}");
+        }
+    }
+
+    private async Task Add()
+    {
+        await service.NewValue($"stock-of-{newProduct}", 0);
+        var newProductItem = new Product
+            {
+                ProductItem = newProduct,
+                Cost = newProductCost,
+                Quanity = 0
+            };
+        products.Add(newProductItem);
+    }
+
+    private async Task IncrementQuantity(Product product)
+    {
+        product.Quanity++;
+        await UpdateQuantity(product);
+    }
+
+    private async Task DecrementQuantity(Product product)
+    {
+        if (product.Quanity > 0)
+        {
+            product.Quanity--;
+            await UpdateQuantity(product);
+        }
+    }
+
+    private async Task UpdateQuantity(Product product)
+    {
+        await service.NewValue($"stock-of-{product.ProductItem}", product.Quanity);
+    }
+}
+

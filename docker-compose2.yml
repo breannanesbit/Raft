@@ -1,6 +1,20 @@
 version: '3.4'
 
 services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./RaftWeb/nginx.conf:/etc/nginx/nginx.conf
+
+  raftweb:
+    build:
+      context: .
+      dockerfile: RaftWeb/Dockerfile
+    ports:
+      - "2000:80"
+
   raftapi:
     build:
       context: .

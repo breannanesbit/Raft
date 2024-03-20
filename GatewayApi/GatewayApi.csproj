@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RaftExample\RaftExample.csproj" />
+    <ProjectReference Include="..\SharedRaft\SharedRaft.csproj" />
   </ItemGroup>
 
 </Project>
