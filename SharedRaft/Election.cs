@@ -43,10 +43,9 @@ public class Election
         this.logger = logger;
     }
 
-    public Election()
+    public Election(ILogger<Election> logger)
     {
         this.httpClient = new HttpClient();
-
         //set id
         NodeId = Guid.NewGuid();
         //everyone starts as a follower
@@ -58,6 +57,7 @@ public class Election
         ListOfAllNodes.Add(this);
         //set timers
         ResetTimers();
+        this.logger = logger;
     }
 
     public bool LogToFile(string key, int value)

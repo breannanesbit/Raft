@@ -1,18 +1,27 @@
+using Microsoft.Extensions.Logging;
+using Moq;
 using RaftElection;
 
 namespace RathTest
 {
     public class Tests
     {
+        private Mock<ILogger<Election>> _loggerMock;
+
         [SetUp]
         public void Setup()
         {
+            // Create a mock ILogger instance
+            _loggerMock = new Mock<ILogger<Election>>();
         }
 
         [Test]
         public void Leader_Elected_If_Two_Of_Three_Nodes_Are_Healthy()
         {
-            var nodes = CreateNodes(3);
+            _loggerMock = new Mock<ILogger<Election>>();
+
+            var nodes = CreateNodes(3, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Candidate;
 
             SimalationOfVoting(nodes, 1, 0);
@@ -24,7 +33,8 @@ namespace RathTest
         public void Leader_Elected_If_Three_Of_Five_Nodes_Are_Healthy()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
             nodes[0].CurrentState = State.Candidate;
 
             SimalationOfVoting(nodes, 1, 0);      //WaitForLeaderElection(nodes);
@@ -35,7 +45,9 @@ namespace RathTest
         public void Leader_Not_Elected_If_Two_Of_Five_Nodes_Are_Unhealthy()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Candidate;
             Election.MarkNodesUnhealthy(2);
 
@@ -48,7 +60,9 @@ namespace RathTest
         public void Leader_Not_Elected_If_one_Of_Five_Nodes_Are_Unhealthy()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Candidate;
             Election.MarkNodesUnhealthy(1);
             SimalationOfVoting(nodes, 1, 0);
@@ -60,7 +74,9 @@ namespace RathTest
         public void Leader_Not_Elected_If_Three_Of_Five_Nodes_Are_Unhealthy()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Candidate;
             Election.MarkNodesUnhealthy(3);
             SimalationOfVoting(nodes, 1, 0);
@@ -72,7 +88,9 @@ namespace RathTest
         public void Node_Continues_As_Leader_If_All_Nodes_Remain_Healthy()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Candidate;
             SimalationOfVoting(nodes, 1, 0);
             //WaitForLeaderElection(nodes);
@@ -102,7 +120,8 @@ namespace RathTest
         public void Node_will_call_for_an_election_if_messages_from_the_leader_takes_too_long()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
 
             nodes[0].CurrentState = State.Candidate;
             SimalationOfVoting(nodes, 1, 0);
@@ -123,7 +142,9 @@ namespace RathTest
         public void Avoiding_two_double_voting()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Candidate;
             SimalationOfVoting(nodes, 1, 0);
 
@@ -142,7 +163,9 @@ namespace RathTest
         public void TestStrongGet()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Leader;
             nodes[0].CurrentLeader = nodes[0].NodeId;
             nodes[1].CurrentLeader = nodes[0].NodeId;
@@ -160,7 +183,10 @@ namespace RathTest
         public void TestStrongGetWithOnlyThreenodesHaveTheLeader()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
+
             nodes[0].CurrentState = State.Leader;
             nodes[0].CurrentLeader = nodes[0].NodeId;
             nodes[1].CurrentLeader = nodes[0].NodeId;
@@ -175,7 +201,8 @@ namespace RathTest
         public void TestPiecesOfGateway()
         {
             Election.ClearListForTestingPurpose();
-            var nodes = CreateNodes(5);
+            _loggerMock = new Mock<ILogger<Election>>();
+            var nodes = CreateNodes(5, _loggerMock.Object);
             nodes[0].CurrentState = State.Leader;
             nodes[0].CurrentLeader = nodes[0].NodeId;
             nodes[1].CurrentLeader = nodes[0].NodeId;
@@ -194,12 +221,13 @@ namespace RathTest
             Assert.IsTrue(success);
         }
 
-        private static Election[] CreateNodes(int count)
+        private static Election[] CreateNodes(int count, ILogger<Election> logger)
         {
+
             var nodes = new Election[count];
             for (int i = 0; i < count; i++)
             {
-                nodes[i] = new Election();
+                nodes[i] = new Election(logger);
             }
 
             //foreach (var node in nodes)
