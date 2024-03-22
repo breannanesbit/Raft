@@ -22,7 +22,7 @@ public class Election
     private readonly static Dictionary<Guid, (int, Guid)> Votes = [];
     private readonly object lockObject = new object();
     private readonly ILogger<Election> logger;
-    private Dictionary<string, (int, int)> logDict = [];
+    private Dictionary<string, (string, int)> logDict = [];
 
     public Election(List<string> urls, ILogger<Election> logger)
     {
@@ -60,7 +60,7 @@ public class Election
         this.logger = logger;
     }
 
-    public bool LogToFile(string key, int value)
+    public bool LogToFile(string key, string value)
     {
         //lock (lockObject)
         //{
@@ -101,7 +101,7 @@ public class Election
                 StartAnElectionAsync();
                 break;
             case State.Leader:
-                await SendOutHeartbeatAsync("regular heartbeat", 0, NodeId);
+                await SendOutHeartbeatAsync("regular heartbeat", "-1", NodeId);
                 break;
         }
     }
@@ -127,14 +127,14 @@ public class Election
                 CurrentState = State.Leader;
                 logger.LogInformation($"{NodeId} is the leader for term {CurrentTerm}");
                 //LogToFile($"{NodeId} is the leader for term {CurrentTerm}");
-                await SendOutHeartbeatAsync("election ended", 0, NodeId);
+                await SendOutHeartbeatAsync("election ended", "-1", NodeId);
                 return;
             }
 
         }
     }
 
-    public async Task<int> SendOutHeartbeatAsync(string key, int value, Guid CurrentLeader)
+    public async Task<int> SendOutHeartbeatAsync(string key, string value, Guid CurrentLeader)
     {
         int success = 0;
         foreach (var nodes in Urls)
@@ -193,7 +193,7 @@ public class Election
         }
     }
 
-    public (int?, int?) EventualGet(string key)
+    public (string?, int?) EventualGet(string key)
     {
         if (logDict.TryGetValue(key, out var value))
         {
@@ -202,7 +202,7 @@ public class Election
         return (null, null);
     }
 
-    public async Task<(int?, int?)> StrongGetAsync(string key)
+    public async Task<(string?, int?)> StrongGetAsync(string key)
     {
         int leaderInt = 0;
         foreach (var node in Urls)
@@ -229,7 +229,7 @@ public class Election
 
     }
 
-    public bool CompareVersionAndSwap(string key, int expectedIndex, int newValue)
+    public bool CompareVersionAndSwap(string key, int expectedIndex, string newValue)
     {
         if (logDict.TryGetValue(key, out var value) && value.Item2 <= expectedIndex)
         {
@@ -255,7 +255,7 @@ public class Election
         //else { return false; }
     }
 
-    public async Task<bool> WriteAsync(string key, int value)
+    public async Task<bool> WriteAsync(string key, string value)
     {
         if (CurrentState != State.Leader)
         {
@@ -324,7 +324,7 @@ public class Election
 public class HeartbeatInfo
 {
     public Guid LeaderId { get; set; }
-    public int Value { get; set; }
+    public string Value { get; set; }
     public string key { get; set; }
     public int CurrentTerm { get; set; }
 }
@@ -333,13 +333,13 @@ public class SwapInfo
 {
     public string Key { get; set; }
     public int ExpectedIndex { get; set; }
-    public int NewValue { get; set; }
+    public string NewValue { get; set; }
 }
 
 public class KeyValue
 {
     public string key { get; set; }
-    public int value { get; set; }
+    public string value { get; set; }
 }
 
 public class Product
@@ -348,5 +348,26 @@ public class Product
     public int Quanity { get; set; }
     public double Cost { get; set; }
 }
+
+public class Cart
+{
+    public Guid OrderId { get; set; }
+    public string Username { get; set; }
+    public List<Product> ShoppingItems { get; set; } = new();
+}
+
+public class LogInfo
+{
+    public string Value { get; set; }
+    public int LogIndex { get; set; }
+}
+
+public class PendingOrders
+{
+    public Guid ProcessorId { get; set; }
+    public Guid OrderId { get; set; }
+}
+
+
 
 

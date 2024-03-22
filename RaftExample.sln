@@ -11,9 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftAPI", "RaftAPI\RaftAPI.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GatewayApi", "GatewayApi\GatewayApi.csproj", "{609E435B-EDD4-4409-BEA0-7690F35FC0E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaftWeb1", "RaftWeb1\RaftWeb1.csproj", "{A5CC0104-CFB5-45DF-B406-591AE643DB68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftWeb1", "RaftWeb1\RaftWeb1.csproj", "{A5CC0104-CFB5-45DF-B406-591AE643DB68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedRaft", "SharedRaft\SharedRaft.csproj", "{8BA5F4AF-7A01-4A29-8A6D-1D38402C3494}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedRaft", "SharedRaft\SharedRaft.csproj", "{8BA5F4AF-7A01-4A29-8A6D-1D38402C3494}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

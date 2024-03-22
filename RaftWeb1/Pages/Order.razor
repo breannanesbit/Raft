@@ -1,0 +1,81 @@
+﻿@page "/order"
+@using RaftElection
+@inject Productservice productService
+
+<h3>Select the products you'd like to order</h3>
+
+<div class="row">
+    @if (productService != null && productService.products != null)
+    {
+        @foreach (var product in productService.products)
+        {
+            @if (product.Quanity > 0)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">@product.ProductItem - $@product.Cost</h5>
+                            <p class="card-text">Quantity: @product.Quanity</p>
+                            <button class="btn btn-primary" @onclick="() => AddToCart(product)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+</div>
+
+<h3>Your Cart</h3>
+
+@if (cart != null && cart.ShoppingItems != null && cart.ShoppingItems.Count > 0)
+{
+    <div class="row">
+        @foreach (var item in cart.ShoppingItems)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@item.ProductItem - $@item.Cost</h5>
+                        <p class="card-text">Quantity: @item.Quanity</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Your cart is empty.</p>
+}
+
+<button class="btn btn-primary" @onclick="StartOrderProcess">Checkout</button>
+
+@code {
+    private Cart cart = new Cart();
+
+    // Method to add a product to the cart
+    public void AddToCart(Product product)
+    {
+        if (cart.ShoppingItems == null)
+            cart.ShoppingItems = new List<Product>();
+
+        var existingItem = cart.ShoppingItems.FirstOrDefault(p => p.ProductItem == product.ProductItem);
+        if (existingItem != null)
+        {
+            existingItem.Quanity++;
+        }
+        else
+        {
+            cart.ShoppingItems.Add(new Product { ProductItem = product.ProductItem, Cost = product.Cost, Quanity = 1 });
+        }
+    }
+
+    // Method to start the order process
+    public void StartOrderProcess()
+    {
+        // Here you can implement the logic to proceed with the order process
+        // For example, navigate to a new page for checkout, or show a modal dialog
+        // You can use the 'cart' list to access the selected products
+    }
+}
+

@@ -29,7 +29,7 @@ namespace RaftElection
 
         }
 
-        public async Task WriteAsync(string key, int value)
+        public async Task WriteAsync(string key, string value)
         {
             //make sure we have current leader
             await GetLeaderAsync();
@@ -44,20 +44,20 @@ namespace RaftElection
             var response = httpClient.PostAsJsonAsync($"{leadersUrl}/write", pair);
         }
 
-        public async Task<(int?, int?)> EventualGetAsync(string value)
+        public async Task<(string?, int?)> EventualGetAsync(string value)
         {
             var url = nodes.FirstOrDefault();
             if (url != null)
             {
-                return await httpClient.GetFromJsonAsync<(int?, int?)>($"{url}/eventalGet/{value}");
+                return await httpClient.GetFromJsonAsync<(string?, int?)>($"{url}/eventalGet/{value}");
             }
             else
                 return (null, null);
         }
 
-        public async Task<(int?, int?)> StrongGetAsync(string value)
+        public async Task<(string?, int?)> StrongGetAsync(string value)
         {
-            return await httpClient.GetFromJsonAsync<(int?, int?)>($"{leadersUrl}/strongGet/{value}");
+            return await httpClient.GetFromJsonAsync<(string?, int?)>($"{leadersUrl}/strongGet/{value}");
 
         }
 

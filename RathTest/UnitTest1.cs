@@ -209,13 +209,13 @@ namespace RathTest
             nodes[2].CurrentLeader = nodes[0].NodeId;
 
             var currentLeader = nodes[0];
-            currentLeader.LogToFile("test", 1);
+            currentLeader.LogToFile("test", "1");
 
             bool success = false;
 
             if (currentLeader != null)
             {
-                success = currentLeader.CompareVersionAndSwap("test", 1, 2);
+                success = currentLeader.CompareVersionAndSwap("test", 1, "2");
             }
 
             Assert.IsTrue(success);

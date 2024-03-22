@@ -27,14 +27,16 @@
     private int? balance;
     private int? ChangeBalanceByThisAmount;
 
-    private void AddUser()
+    private async Task AddUser()
     {
-        service.NewValue(userName,0);
+        await service.NewValue(userName,"0");
     }
 
     private async Task SubmitUser()
     {
-        balance = await service.GetInfor($"balance-of-{userName}");
+        var response = await service.GetInfor($"balance-of-{userName}");
+        int.TryParse(response.Item1, out int value);
+        balance = value;
     }
 
     private async Task MakeAWithdrawl()
@@ -42,7 +44,7 @@
         if(ChangeBalanceByThisAmount != null)
         {
             var amount = -ChangeBalanceByThisAmount.Value;
-            await service.NewValue(userName, amount);
+            await service.NewValue(userName, amount.ToString());
 
         }
     }
@@ -51,7 +53,7 @@
     {
         if (ChangeBalanceByThisAmount != null)
         {
-            await service.NewValue(userName, ChangeBalanceByThisAmount.Value);
+            await service.NewValue(userName, ChangeBalanceByThisAmount.Value.ToString());
 
         }
     }

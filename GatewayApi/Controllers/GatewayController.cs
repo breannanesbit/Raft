@@ -16,13 +16,13 @@ public class GatewayController : ControllerBase
     }
 
     [HttpGet("EventualGet/{key}")]
-    public async Task<(int?, int?)> EventualGet(string key)
+    public async Task<(string?, int?)> EventualGet(string key)
     {
         return await _gateway.EventualGetAsync(key);
     }
 
     [HttpGet("strongGet/{key}")]
-    public async Task<(int?, int?)> StrongGet(string key)
+    public async Task<(string?, int?)> StrongGet(string key)
     {
         return await _gateway.StrongGetAsync(key);
     }

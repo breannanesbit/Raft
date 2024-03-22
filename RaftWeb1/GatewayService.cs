@@ -12,12 +12,12 @@ namespace RaftWeb1
             this.httpClient = httpClient;
         }
 
-        public async Task<int> GetInfor(string key)
+        public async Task<(string, int)> GetInfor(string key)
         {
-            return await httpClient.GetFromJsonAsync<int>($"gateway/strongGet/{key}");
+            return await httpClient.GetFromJsonAsync<(string, int)>($"gateway/strongGet/{key}");
         }
 
-        public async Task NewValue(string username, int value)
+        public async Task NewValue(string username, string value)
         {
             var pair = new KeyValue
             {
@@ -28,6 +28,11 @@ namespace RaftWeb1
 
         }
 
+
+        public async Task CompareAndSwap(SwapInfo swap)
+        {
+            await httpClient.PostAsJsonAsync("gateway/compareandswap", swap);
+        }
 
     }
 }

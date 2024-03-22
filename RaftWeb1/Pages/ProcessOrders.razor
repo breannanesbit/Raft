@@ -1,0 +1,45 @@
+﻿@page "/ProcessOrders"
+@using Newtonsoft.Json
+@using RaftElection
+@inject GatewayService service;
+
+<h3>Process Orders</h3>
+<div class="row">
+    @foreach (var orderId in pending_orders)
+    {
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order ID: @orderId</h5>
+                    <button class="btn btn-primary" @onclick="() => ProcessOrder(orderId)">Process</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    public static List<Guid> pending_orders = new List<Guid>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await service.GetInfor("pending-orders");
+        pending_orders = JsonConvert.DeserializeObject<List<Guid>>(response.Item1);
+
+    }
+
+    private async Task ProcessOrder(Guid orderId)
+    {
+        // Perform Saga pattern steps here
+        // For example:
+        // 1. Reduce user balance
+        // 2. Reduce product stock
+        // 3. Increase vendor balance
+        // 4. Update order status
+        // 5. Remove order from pending orders
+
+        // You can call appropriate methods from GatewayService or other services for each step
+        // Handle retries and undo operations as described in the requirements
+    }
+}

@@ -1,11 +1,13 @@
 ﻿@page "/products"
 @using RaftElection
 @inject GatewayService service
+@inject Productservice product_service
+
 
 <h3>Products</h3>
 
 <div class="row">
-    @foreach (var product in products)
+    @foreach (var product in product_service.products)
     {
         <div class="col-md-4 mb-3">
             <div class="card">
@@ -32,32 +34,28 @@
 @code {
     private string newProduct = "";
     private double newProductCost;
-    private List<Product> products = new List<Product>
-    {
-        new Product { ProductItem = "Candy Bar", Cost = 1.00D },
-        new Product { ProductItem = "Football", Cost = 5.00D },
-        new Product { ProductItem = "Water Bottle", Cost = 2.00D },
-        new Product { ProductItem = "Pens", Cost = 1.50D },
-    };
+
 
     protected override async Task OnInitializedAsync()
     {
-        foreach (var product in products)
+        foreach (var product in product_service.products)
         {
-            product.Quanity = await service.GetInfor($"stock-of-{product.ProductItem}");
+            var response = await service.GetInfor($"stock-of-{product.ProductItem}");
+            int.TryParse(response.Item1, out int value);
+            product.Quanity = value;
         }
     }
 
     private async Task Add()
     {
-        await service.NewValue($"stock-of-{newProduct}", 0);
+        await service.NewValue($"stock-of-{newProduct}", "0");
         var newProductItem = new Product
             {
                 ProductItem = newProduct,
                 Cost = newProductCost,
                 Quanity = 0
             };
-        products.Add(newProductItem);
+        product_service.products.Add(newProductItem);
     }
 
     private async Task IncrementQuantity(Product product)
@@ -77,7 +75,7 @@
 
     private async Task UpdateQuantity(Product product)
     {
-        await service.NewValue($"stock-of-{product.ProductItem}", product.Quanity);
+        await service.NewValue($"stock-of-{product.ProductItem}", product.Quanity.ToString());
     }
 }
 
