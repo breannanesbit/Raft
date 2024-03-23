@@ -2,10 +2,11 @@
 @using Newtonsoft.Json
 @using RaftElection
 @inject GatewayService service;
+@inject OrderProcessingService processService;
 
 <h3>Process Orders</h3>
 <div class="row">
-    @foreach (var orderId in pending_orders)
+    @foreach (var orderId in allOrders)
     {
         <div class="col-md-4">
             <div class="card">
@@ -21,25 +22,144 @@
 
 @code {
     public static List<Guid> pending_orders = new List<Guid>();
+    public List<PendingOrders> allOrders = new();
 
     protected override async Task OnInitializedAsync()
     {
         var response = await service.GetInfor("pending-orders");
         pending_orders = JsonConvert.DeserializeObject<List<Guid>>(response.Item1);
 
+        foreach(var order in pending_orders)
+        {
+            var status = await service.GetInfor($"order-status {order}");
+            var info = await service.GetInfor($"order-info {order}");
+
+            var split = info.Item1.Split(',');
+
+            var getCartInfo = split[1].Split(' ');
+
+            var cartInfo = JsonConvert.DeserializeObject<Cart>(getCartInfo[1]);
+
+
+            var fullOrder = new PendingOrders
+                {
+                    OrderId = order,
+                    Status = status.Item1,
+                    StatusIndex = status.Item2,
+                    OrderInfo = cartInfo,
+                    OrderInfoIndex = info.Item2,
+                };
+
+            allOrders.Add(fullOrder);
+        }
+
     }
 
-    private async Task ProcessOrder(Guid orderId)
+    private async Task ProcessOrder(PendingOrders order)
     {
-        // Perform Saga pattern steps here
-        // For example:
-        // 1. Reduce user balance
-        // 2. Reduce product stock
-        // 3. Increase vendor balance
-        // 4. Update order status
-        // 5. Remove order from pending orders
-
-        // You can call appropriate methods from GatewayService or other services for each step
-        // Handle retries and undo operations as described in the requirements
+        await processService.ProcessOrder(order);
     }
+
+    // public async Task ChangeVendorAmount(double amount, bool AddingToVendor)
+    // {
+    //     var vendorBalance = await service.GetInfor("balance-of vendor");
+    //     double.TryParse(vendorBalance.Item1, out double oldAmount);
+
+    //     double newAmount = 0;
+    //     if(AddingToVendor)
+    //     {
+    //         newAmount = oldAmount + amount;
+    //     }
+    //     else
+    //     {
+    //         newAmount = oldAmount - amount;
+    //     }
+
+    //     var updateVendorsBalance = new SwapInfo
+    //         {
+    //             Key = "balance-of vendor",
+    //             ExpectedIndex = vendorBalance.Item2,
+    //             NewValue = $"{newAmount}"
+    //         };
+
+    //     await service.CompareAndSwap(updateVendorsBalance);
+    // }
+
+    // public async Task ChangePendingOrder(PendingOrders order)
+    // {
+    //     var pending_orders = await service.GetInfor("pending-orders");
+
+    //     var pendingOrders = JsonConvert.DeserializeObject<List<Guid>>(pending_orders.Item1);
+    //     var newOrder = pendingOrders.FindAll((op) => op != order.OrderId);
+    //     var updatedPendingOrdersJson = JsonConvert.SerializeObject(newOrder);
+
+    //     var updatePendingOrders = new SwapInfo
+    //         {
+    //             Key = "pending-orders",
+    //             ExpectedIndex = pending_orders.Item2,
+    //             NewValue = updatedPendingOrdersJson,
+    //         };
+    //     await service.CompareAndSwap(updatePendingOrders);
+    // }
+
+    // public async Task ChangeProductStock(Product changeProduct, bool decreaseStock)
+    // {
+    //     var getProduct = await service.GetInfor($"stock-of-{changeProduct.ProductItem}");
+    //     int.TryParse(getProduct.Item1, out int amount);
+
+    //     var newStockNum = 0;
+    //     if (decreaseStock)
+    //     {
+    //         newStockNum = amount - changeProduct.Quanity;
+    //     }
+    //     else
+    //     {
+    //         newStockNum = amount + changeProduct.Quanity;
+    //     }
+
+    //     var updateProductStock = new SwapInfo
+    //         {
+    //             Key = $"stock-of-{changeProduct.ProductItem}",
+    //             ExpectedIndex = getProduct.Item2,
+    //             NewValue = $"{newStockNum}"
+    //         };
+    //     await service.CompareAndSwap(updateProductStock);
+    // }
+
+    // public double CalcuateAmountTotal(Cart cart)
+    // {
+    //     double totalAmount = 0;
+    //     foreach (var c in cart.ShoppingItems)
+    //     {
+    //         totalAmount += (c.Cost * c.Quanity);
+    //     }
+    //     return totalAmount;
+    // }
+
+    // public async Task ChangeBalance(Cart cart, bool subtractFromAmount)
+    // {
+    //     var totalAmount = CalcuateAmountTotal(cart);
+
+    //     var balance = await service.GetInfor($"balance-of {cart.Username}");
+    //     double.TryParse(balance.Item1, out double amount);
+
+    //     double newTotal = 0;
+    //     if(subtractFromAmount)
+    //     {
+    //         newTotal = totalAmount - amount;
+    //     }
+    //     else
+    //     {
+    //         newTotal = totalAmount + amount;
+    //     }
+
+    //     var changeUserBalance = new SwapInfo
+    //         {
+    //             Key = $"balance-of {cart.Username}",
+    //             ExpectedIndex = balance.Item2,
+    //             NewValue = $"{newTotal}",
+    //         };
+
+    //     await service.CompareAndSwap(changeUserBalance);
+    // }
 }

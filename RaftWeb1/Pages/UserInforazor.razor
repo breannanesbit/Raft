@@ -29,14 +29,15 @@
 
     private async Task AddUser()
     {
-        await service.NewValue(userName,"0");
+        await service.NewValue($"balance-of {userName}","0");
     }
 
     private async Task SubmitUser()
     {
-        var response = await service.GetInfor($"balance-of-{userName}");
+        var response = await service.GetInfor($"balance-of {userName}");
         int.TryParse(response.Item1, out int value);
         balance = value;
+        StateHasChanged();
     }
 
     private async Task MakeAWithdrawl()

@@ -1,6 +1,7 @@
 ﻿@page "/order"
 @using RaftElection
 @inject Productservice productService
+@inject OrderService orderService
 
 <h3>Select the products you'd like to order</h3>
 
@@ -71,8 +72,9 @@ else
     }
 
     // Method to start the order process
-    public void StartOrderProcess()
+    public async Task StartOrderProcess()
     {
+        await orderService.CreateANewOrderAsync(cart);
         // Here you can implement the logic to proceed with the order process
         // For example, navigate to a new page for checkout, or show a modal dialog
         // You can use the 'cart' list to access the selected products

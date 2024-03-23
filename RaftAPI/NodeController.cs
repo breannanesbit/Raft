@@ -18,11 +18,11 @@ namespace RaftAPI
             _nodeService = nodeService;
         }
 
-        [HttpGet("startNode")]
-        public void StartNode()
-        {
-            _nodeService.CheckState();
-        }
+        //[HttpGet("startNode")]
+        //public void StartNode()
+        //{
+        //    _nodeService.CheckState();
+        //}
 
         [HttpGet("leader")]
         public bool FoundLeader()

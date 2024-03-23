@@ -22,8 +22,11 @@ namespace RaftWeb1
                 productsAsStringArray.Add(p.ProductItem);
             }
 
+            var serializedCart = JsonConvert.SerializeObject(cart);
+
+
             await gateway.NewValue($"order-status {cart.OrderId}", "pendiing");
-            await gateway.NewValue($"order-info {cart.OrderId}", $"purchaser {cart.Username} and list of {cart.ToString()}");
+            await gateway.NewValue($"order-info {cart.OrderId}", $"purchaser: {cart.Username}, list: {serializedCart}");
 
             var pending_orders = await gateway.GetInfor("pending-orders");
 

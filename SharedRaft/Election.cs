@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Timers;
 
 namespace RaftElection;
 
@@ -23,6 +24,8 @@ public class Election
     private readonly object lockObject = new object();
     private readonly ILogger<Election> logger;
     private Dictionary<string, (string, int)> logDict = [];
+    private readonly System.Timers.Timer startTimer;
+
 
     public Election(List<string> urls, ILogger<Election> logger)
     {
@@ -41,6 +44,10 @@ public class Election
         ResetTimers();
         Urls = urls;
         this.logger = logger;
+
+        startTimer = new System.Timers.Timer(timer);
+        startTimer.Elapsed += CheckState;
+        startTimer.Start();
     }
 
     public Election(ILogger<Election> logger)
@@ -81,7 +88,7 @@ public class Election
     {
         timer = random.Next(150, 300);
     }
-    public void CheckState()
+    public void CheckState(object? sender, ElapsedEventArgs e)
     {
         while (true)
         {
@@ -366,6 +373,11 @@ public class PendingOrders
 {
     public Guid ProcessorId { get; set; }
     public Guid OrderId { get; set; }
+    public string Status { get; set; }
+    public int StatusIndex { get; set; }
+    public Cart? OrderInfo { get; set; }
+    public int OrderInfoIndex { get; set; }
+    public string username { get; set; }
 }
 
 
