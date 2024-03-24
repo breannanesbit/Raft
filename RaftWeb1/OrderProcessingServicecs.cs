@@ -21,7 +21,7 @@ namespace RaftWeb1
                 // For example:
                 // 1. Reduce user balance
                 await ChangeBalance(order.OrderInfo, true);
-                LogAction("step 1: Reduced user balance");
+                LogAction("Step 1");
 
 
                 // 2. Reduce product stock
@@ -30,7 +30,7 @@ namespace RaftWeb1
                     await ChangeProductStock(p, true);
 
                 }
-                LogAction($"Step 2: Reduced product stock");
+                LogAction($"Step 2");
 
                 // 3. Increase vendor balance
                 var amount = CalcuateAmountTotal(order.OrderInfo);
